@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIO - Embudo de Conversión</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .metric-card h3 {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+        
+        .metric-card .value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .diagram-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            overflow-x: auto;
+            margin-bottom: 40px;
+        }
+        
+        .timeline {
+            margin-top: 40px;
+        }
+        
+        .timeline h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        
+        .phase {
+            margin-bottom: 40px;
+            border-left: 4px solid #667eea;
+            padding-left: 20px;
+        }
+        
+        .phase-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .phase-title {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        
+        .phase-conversion {
+            background: rgba(255,255,255,0.3);
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        
+        .day-item {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #ddd;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .day-item.critical {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+        }
+        
+        .day-item.high {
+            border-left-color: #f97316;
+            background: #fff7ed;
+        }
+        
+        .day-item.medium {
+            border-left-color: #fbbf24;
+            background: #fffbeb;
+        }
+        
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .day-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        .day-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+            margin-top: 5px;
+        }
+        
+        .conversion-badge {
+            background: #10b981;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        
+        .action {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .action-channel {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 5px;
+            font-size: 0.8em;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        .action-text {
+            margin-top: 8px;
+            color: #555;
+            line-height: 1.6;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .info-item {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .info-label {
+            font-size: 0.75em;
+            color: #666;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            font-size: 0.95em;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 CIO - Embudo de Conversión Completo</h1>
+        <p class="subtitle">Flujo de nurturing y conversión de usuarios Free a Premium (30 días)</p>
+        
+        <div class="metrics">
+            <div class="metric-card">
+                <h3>CONVERSIÓN TOTAL</h3>
+                <div class="value">59-86%</div>
+                <p style="font-size: 0.85em; opacity: 0.8;">Esperada en 30 días</p>
+            </div>
+            <div class="metric-card">
+                <h3>PUNTOS DE CONVERSIÓN</h3>
+                <div class="value">8</div>
+                <p style="font-size: 0.85em; opacity: 0.8;">Oportunidades de compra</p>
+            </div>
+            <div class="metric-card">
+                <h3>TOUCHPOINTS</h3>
+                <div class="value">15+</div>
+                <p style="font-size: 0.85em; opacity: 0.8;">WhatsApp + Email + Ads</p>
+            </div>
+            <div class="metric-card">
+                <h3>INVERSIÓN</h3>
+                <div class="value">$550k</div>
+                <p style="font-size: 0.85em; opacity: 0.8;">COP/mes - ROI 64%</p>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ef4444;"></div>
+                <span><strong>Crítica</strong> - Momento crucial</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #f97316;"></div>
+                <span><strong>Alta</strong> - Muy importante</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #fbbf24;"></div>
+                <span><strong>Media</strong> - Importante</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #10b981;"></div>
+                <span><strong>Normal</strong> - Rutinario</span>
+            </div>
+        </div>
+
+        <div class="diagram-container">
+            <div class="mermaid">
+graph TB
+    Start([👤 Usuario llega al sitio])
+    Start --> Landing{Acción}
+    
+    Landing -->|Se registra| Day0[DÍA 0<br/>Registro]
+    Landing -->|No registra| Retargeting1[Remarketing<br/>Visitantes]
+    
+    Day0 --> Day1[DÍA 1-2<br/>Primeras Ofertas]
+    Day1 --> Day3[DÍA 3<br/>Checkpoint]
+    Day3 --> Day5[DÍA 5<br/>⚠️ Primera Oferta<br/>$9,900]
+    Day5 --> Day6[DÍA 6<br/>Seguimiento]
+    Day6 --> Day7[DÍA 7<br/>🚨 Cierre Trial<br/>$12,900]
+    
+    Day5 -.->|15-20%| Conv1[✅ CONVERSIÓN]
+    Day7 -.->|25-35%| Conv1
+    
+    Day7 --> TrialEnd[Trial Termina]
+    TrialEnd --> Day8[DÍA 8<br/>🎯 Win-back<br/>$14,000]
+    
+    Day8 -.->|8-12%| Conv2[✅ CONVERSIÓN]
+    
+    Day8 --> Day12[DÍA 12<br/>Social Proof<br/>$9,900]
+    Day12 -.->|5-8%| Conv2
+    
+    Day12 --> Day18[DÍA 18<br/>FOMO Ofertas<br/>$14,900]
+    Day18 -.->|3-5%| Conv3[✅ CONVERSIÓN]
+    
+    Day18 --> Day25[DÍA 25<br/>Última Oferta<br/>$24,900]
+    Day25 -.->|2-4%| Conv3
+    
+    Day25 --> Day30[DÍA 30<br/>Despedida<br/>$9,900]
+    Day30 -.->|1-2%| Conv3
+    
+    Day30 --> Lost[❌ Perdido]
+    Lost -.-> Nurture[Nurturing<br/>Trimestral]
+    
+    Conv1 --> Retention[🎯 RETENCIÓN]
+    Conv2 --> Retention
+    Conv3 --> Retention
+    
+    classDef conversion fill:#10b981,stroke:#059669,stroke-width:3px,color:#fff
+    classDef critical fill:#ef4444,stroke:#dc2626,stroke-width:3px,color:#fff
+    classDef high fill:#f97316,stroke:#ea580c,stroke-width:2px,color:#fff
+    classDef lost fill:#6b7280,stroke:#4b5563,stroke-width:2px,color:#fff
+    
+    class Conv1,Conv2,Conv3,Retention conversion
+    class Day5,Day7,Day8 critical
+    class Day12,Day18 high
+    class Lost,Nurture lost
+            </div>
+        </div>
+
+        <div class="timeline">
+            <h2>📅 Timeline Detallado de Acciones</h2>
+            
+            <!-- FASE 1: TRIAL ACTIVO -->
+            <div class="phase">
+                <div class="phase-header">
+                    <div>
+                        <div class="phase-title">FASE 1: TRIAL ACTIVO</div>
+                        <div style="font-size: 0.9em; opacity: 0.9; margin-top: 5px;">Días 0-7</div>
+                    </div>
+                    <div class="phase-conversion">Conversión: 40-55%</div>
+                </div>
+
+                <div class="day-item">
+                    <div class="day-header">
+                        <div>
+                            <span class="day-number">DÍA 0</span>
+                            <div class="day-title">Registro y Bienvenida</div>
+                        </div>
+                    </div>
+                    <div class="action">
+                        <span class="action-channel">💬 WhatsApp</span>
+                        <div class="action-text">
+                            <strong>Mensaje de bienvenida:</strong> "🎯 ¡Bienvenido a CIO! Ya empezamos a cazar ofertas para ti como [Rol] en [Ciudad]. Configura tu perfil para mejores resultados."
+                        </div>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">📊 KPI</div>
+                            <div class="info-value">Completación 85%</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">🎯 Objetivo</div>
+                            <div class="info-value">Onboarding</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="day-item">
+                    <div class="day-header">
+                        <div>
+                            <span class="day-number">DÍA 1-2</span>
+                            <div class="day-title">Primeras Ofertas</div>
+                        </div>
+                    </div>
+                    <div class="action">
+                        <span class="action-channel">💬 WhatsApp</span>
+                        <div class="action-text">
+                            <strong>Envío de ofertas personalizadas</strong> basadas en el perfil del usuario
+                        </div>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">📊 KPI</div>
+                            <div class="info-value">Apertura 70%</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">🎯 Objetivo</div>
+                            <div class="info-value">Mostrar valor</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="day-item medium">
+                    <div class="day-header">
+                        <div>
+                            <span class="day-number">DÍA 3</span>
+                            <div class="day-title">Checkpoint de Activación</div>
+                        </div>
+                    </div>
+                    <div class="action">
+                        <span class="action-channel">💬 WhatsApp</span>
+                        <div class="action-text">
+                            "👀 ¿Ya revisaste las ofertas? En 3 días hemos:<br>
+                            • Revisado 2,847 ofertas en 20+ portales<br>
+                            • Filtrado 23 ofertas perfectas para tu perfil<br>
+                            • Ahorrado ~4 horas de búsqueda manual"
+                        </div>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">📊 KPI</div>
+                            <div class="info-value">Engagement 60%</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">🎯 Segmentación</div>
+                            <div class="info-value">Activos vs Inactivos</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="day-item critical">
+                    <div class="day-header">
+                        <div>
+                            <span class="day-number">DÍA 5</span>
+                            <div class="day-title">🔥 PRE-CIERRE - Primera Oferta</div>
+                        </div>
+                        <span class="conversion-badge">✅ 15-20% Conversión</span>
+                    </div>
+                    <div class="action">
+                        <span class="action-channel">💬 WhatsApp</span>
+                        <div class="action-text">
+                            "⏰ Te quedan 2 días de CIO Free<br><br>
+                            🎁 <strong>Buena noticia:</strong> Si decides continuar HOY, tu primer mes Premium es <strong>$9,900 (50% OFF)</strong><br><br>
+                            ¿Seguimos cazando juntos?"
+                        </div>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">💰 PRECIO</div>
+                            <div class="info-value">$9,900</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">⏰ URGENCIA</div>
+                            <div class="info-value">Suave - Hoy</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">📊 CONVERSIÓN</div>
+                            <div class="info-value">15-20%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="day-item medium">
+                    <div class="day-header">
+                        <div>
+                            <span class="day-number">DÍA 6</span>
+                            <div class="day-title">Seguimiento</div>
+                        </div>
+                    </div>
+                    <div class="action">
+                        <span class="action-channel">💬 WhatsApp</span>
+                        <div class="action-text">
+                            Recordatorio de beneficios + testimonial breve de usuario exitoso
+                        </div>
+                    </div>
+                </div>
+
+                <div class="day-item critical">
+                    <div class="day-header">
+                        <div>
+                            <span class="day-number">DÍA 7</span>
+                            <div class="day-title">🚨 CIERRE TRIAL - Oferta Final</div>
+                        </div>
+                        <span class="conversion-badge">✅ 25-35% Conversión</span>
+                    </div>
+                    <div class="action">
+                        <span class="action-channel">💬 WhatsApp</span>
+                        <div class="action-text">
+                            "🚨 <strong>Último día de tu semana gratis</strong><br><br>
+                            Resumen de tu semana:<br>
+                            ✓ [X] ofertas cazadas<br>
+                            ✓ [Y] portales monitoreados<br>
+                            ✓ ~[Z] horas ahorradas<br><br>
+                            🔥 <strong>OFERTA FINAL:</strong> Plan Premium por $12,900 (35% OFF) solo si decides en las próximas 6 horas"
+                        </div>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">💰 PRECIOS</div>
+                            <div class="info-value">$12,900 / $44,900</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">⏰ URGENCIA</div>
+                            <div class="info-value">Alta - 6 horas</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">📊 CONVERSIÓN</div>
+                            <div class="info-value">25-35%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FASE 2: POST-TRIAL WIN-BACK TEMPRANO -->
+            <div class="phase" style="border-left-color: #f97316;">
+                <div class="phase-header" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);">
+                    <div>
+                        <div class="phase-title">FASE 2: POST-TRIAL - WIN-BACK TEMPRANO</div>
+                        <div style="font-size: 0.9em; opacity: 0.9; margin-top: 5px;">Días 8-17</div>
+                    </div>
+                    <div class="phase-conversion">Conversión: 13-20%</div>
+                </div>
+
+                <div class="day-item critical">
+                    <div class="day-header">
+                        <div>
+                            <span class="day-number">DÍA 8</span>
+                            <div class="day-title">🎯 Win-back Inmediato</div>
+                        </div>
+                        <span class="conversion-badge">✅ 8-12% Conversión</span>
+                    </div>
+                    <div class="action">
+                        <span class="action-channel">💬 WhatsApp</span>
+                        <div class="action-text">
+                            "😢 Tu semana con CIO terminó<br><br>
+                            Pero seguimos cazando ofertas para ti...<br>
+                            Hoy encontramos 8 nuevas ofertas de [Rol] en [Ciudad] pero no pudimos enviártelas 🙈<br><br>
+                            ❤️ Te extrañamos. Vuelve con 30% OFF: $14,000/mes"
+                        </div>
+                    </div>
+                    <div class="action">
+                        <span class="action-channel">📧 Email</span>
+                        <div class="action-text">
+                            <strong>Asunto:</strong> ¿Cómo Juan consiguió 3 entrevistas en 2 semanas?<br>
+                            <strong>Contenido:</strong> Caso de éxito completo con storytelling + CTA
+                        </div>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">💰 PRECIO</div>
+                            <div class="info-value">$14,000</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">📊 CONVERSIÓN</div>
+                            <div class="info-value">8-12%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="day-item high">
+                    <div class="day-header">
+                        <div>
+                            <span class="day-number">DÍA 12</span>
+                            <div class="day-title">Segunda Ola - Social Proof</div>
+                        </div>
+                        <span class="conversion-badge">✅ 5-8% Conversión</span>
+                    </div>
+                    <div class="action">
+                        <span class="action-channel">💬 WhatsApp</span>
+                        <div class="action-text">
+                            "💼 Mientras tanto, en CIO...<br><br>
+                            Esta semana 37 personas consiguieron entrevistas gracias a las ofertas que cazamos.<br><br>
+                            María (Analista Financiera - Cali) encontró trabajo en solo 18 días usando CIO 🎉<br><br>
+                            Vuelve por $9,900 tu primer mes"
+                        </div>
+                    </div>
+                    <div class="action">
+                        <span class="action-channel">📧 Email</span>
+                        <div class="action-text">
+                            <strong>Asunto:</strong> ¿Cuánto te cuesta buscar empleo "gratis"?<br>
+                            <strong>Contenido:</strong> Calculadora de ROI: tiempo invertido vs costo CIO
+                        </div>
+                    </div>
+                    <div class="action">
+                        <span class="action-channel">📱 Meta Ads</span>
+                        <div class="action-text">
+                            <strong>Video 15 seg:</strong> Comparación búsqueda manual vs CIO<br>
+                            <strong>Copy:</strong> "Mientras buscas en 5 portales, CIO ya revisó 23. Vuelve desde $9,900/mes"
+                        </div>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">💰 PRECIO</div>
+                            <div class="info-value">$9,900</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">💵 PRESUPUESTO ADS</div>
+                            <div class="info-value">$200k COP/mes</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">📊 CONVERSIÓN</div>
+                            <div class="info-value">5-8%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FASE 3: POST-TRIAL WIN-BACK TARDÍO -->
+            <div class="phase" style="border-left-color: #ef4444;">
+                <div class="phase-header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                    <div>
+                        <div class="phase-title">FASE 3: POST-TRIAL - WIN-BACK TARDÍO</div>
+                        <div style="font-size: 0.9em; opacity: 0.9; margin-top: 5px;">Días 18-30</div>
+                    </div>
+                    <div class="phase-conversion">Conversión: 6-11%</div>
+                </div>
+
+                <div class="day-item high">
+                    <div class="day-header">
+                        <div>
+                            <span class="day-number">DÍA 18</span>
+                            <div class="day-title">FOMO - Ofertas Perdidas</div>
+                        </div>
+                        <span class="conversion-badge">✅ 3-5% Conversión</span>
+                    </div>
+                    <div class="action">
+                        <span class="action-channel">💬 WhatsApp</span>
+                        <div class="action-text">
+                            "📈 En los últimos 10 días cazamos:<br>
+                            • 47 ofertas de [Rol]<br>
+                            • 12 en empresas top (Google, Bancolombia, Rappi...)<br>
+                            • 8 con salario $[rango que buscas]+<br><br>
+                            Pero no pudiste verlas 😔<br><br>
+                            Plan Premium $14,900/mes"
+                        </div>
+                    </div>
+                    <div class="action">
+                        <span class="action-channel">📧 Email</span>
+                        <div class="action-text">
+                            Calculadora interactiva para calcular costo de oportunidad
+                        </div>
+                    </div>
+                    <div class="action">
+                        <span class="action-channel">📱 Meta Ads</span>
+                        <div class="action-text">
+                            Testimonial en video: Usuario real mostrando WhatsApp con ofertas
+                        </div>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">💰 PRECIO</div>
+                            <div class="info-value">$14,900</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">📊 CONVERSIÓN</div>
+                            <div class="info-value">3-5%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="day-item medium">
+                    <div class="day-header">
+                        <div>
+                            <span class="day-number">DÍA 25</span>
+                            <div class="day-title">Última Oportunidad</div>
+                        </div>
+                        <span class="conversion-badge">✅ 2-4% Conversión</span>
+                    </div>
+                    <div class="action">
+                        <span class="action-channel">💬 WhatsApp</span>
+                        <div class="action-text">
+                            "🎁 <strong>OFERTA EXCLUSIVA</strong> (caduca mañana):<br>
+                            → 2 meses Premium por $24,900 ($12,450/mes)<br><br>
+                            Es nuestra mejor oferta.<br>
+                            ¿Nos das una última oportunidad de ayudarte?"
+                        </div>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">💰 PRECIO</div>
+                            <div class="info-value">$24,900 (2 meses)</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">⏰ URGENCIA</div>
+                            <div class="info-value">Alta - 24h</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">📊 CONVERSIÓN</div>
+                            <div class="info-value">2-4%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="day-item">
+                    <div class="day-header">
+                        <div>
+                            <span class="day-number">DÍA 30</span>
+                            <div class="day-title">👋 Cierre Definitivo</div>
+                        </div>
+                        <span class="conversion-badge">✅ 1-2% Conversión</span>
+                    </div>
+                    <div class="action">
+                        <span class="action-channel">💬 WhatsApp</span>
+                        <div class="action-text">
+                            "👋 Es nuestra última vez escribiéndote<br><br>
+                            Te deseamos éxito en tu búsqueda laboral.<br>
+                            Si cambias de opinión, estaremos aquí 💜<br><br>
+                            PD: Este link especial de $9,900/mes quedará activo para ti por 48 horas"
+                        </div>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">💰 PRECIO</div>
+                            <div class="info-value">$9,900</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">⏰ VALIDEZ</div>
+                            <div class="info-value">48 horas</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">📊 CONVERSIÓN</div>
+                            <div class="info-value">1-2%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FASE 4: NURTURING PASIVO -->
+            <div class="phase" style="border-left-color: #8b5cf6;">
+                <div class="phase-header" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                    <div>
+                        <div class="phase-title">FASE 4: NURTURING PASIVO</div>
+                        <div style="font-size: 0.9em; opacity: 0.9; margin-top: 5px;">Día 32+</div>
+                    </div>
+                    <div class="phase-conversion">Reactivación futura</div>
+                </div>
+
+                <div class="day-item">
+                    <div class="day-header">
+                        <div>
+                            <span class="day-number">DÍA 32+</span>
+                            <div class="day-title">Lista de Nurturing Trimestral</div>
+                        </div>
+                    </div>
+                    <div class="action">
+                        <span class="action-channel">📧 Email</span>
+                        <div class="action-text">
+                            <strong>Frecuencia:</strong> Trimestral<br>
+                            <strong>Contenido:</strong> Nuevas features, casos de éxito recientes, tips de búsqueda laboral<br>
+                            <strong>Objetivo:</strong> Mantener marca top-of-mind para reactivación futura
+                        </div>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">👥 SEGMENTOS</div>
+                            <div class="info-value">Baja intención + Activos no convertidos</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">📊 KPI</div>
+                            <div class="info-value">Apertura 20-30%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis',
+                padding: 20
+            }
+        });
+    </script>
+</body>
+</html>
